@@ -33,16 +33,13 @@
             <p class="text-gray-500 text-sm mt-1 ml-1">Ringkasan performa bisnis dan aktivitas terbaru.</p>
         </div>
         
-        {{-- Kanan: Tanggal & Filter (Ditumpuk Vertikal) --}}
+        {{-- Kanan: Tanggal & Filter --}}
         <div class="flex flex-col items-end gap-3 w-full md:w-auto">
-            
-            {{-- 1. Tampilan Tanggal --}}
             <div class="text-sm text-gray-500 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 flex items-center">
                 <i class="far fa-calendar-alt mr-2 text-indigo-500"></i>
                 {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
             </div>
 
-            {{-- 2. Tombol Filter (Dipindah ke Sini) --}}
             <div class="bg-white p-1 rounded-lg shadow-sm border border-gray-200 inline-flex">
                 @foreach(['harian' => 'Hari Ini', 'mingguan' => 'Mingguan', 'bulanan' => 'Bulanan', 'tahunan' => 'Tahunan'] as $key => $label)
                     <a href="{{ route('dashboard', ['filter' => $key]) }}" 
@@ -54,8 +51,8 @@
         </div>
     </div>
 
-    {{-- ================= KONTEN ADMIN ================= --}}
-    @if(auth()->user()->role == 'admin')
+    {{-- ================= KONTEN ADMIN & CEO (DIPERBAIKI) ================= --}}
+    @if(in_array(auth()->user()->role, ['admin', 'ceo']))
 
         {{-- BARIS 1: KPI UTAMA --}}
         <h3 class="text-gray-700 font-semibold mb-3 flex items-center text-sm uppercase tracking-wide">
@@ -118,7 +115,7 @@
             </div>
         </div>
 
-        {{-- GRID UTAMA ADMIN --}}
+        {{-- GRID UTAMA --}}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch"> 
             <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col h-[450px]"> 
                 <div class="flex justify-between items-center mb-4">
@@ -227,7 +224,9 @@
         const userRole = "{{ auth()->user()->role }}";
         Chart.defaults.font.family = "'Inter', sans-serif";
         Chart.defaults.color = '#6b7280';
-        if (userRole === 'admin') {
+        
+        // DIPERBAIKI: Menambahkan role ceo pada pengecekan grafik
+        if (userRole === 'admin' || userRole === 'ceo') {
             const ctx = document.getElementById('grafikPenjualan').getContext('2d');
             new Chart(ctx, { type: 'bar', data: { labels: {!! json_encode($grafikLabel ?? []) !!}, datasets: [{ label: 'Transaksi', data: {!! json_encode($grafikData ?? []) !!}, backgroundColor: '#4f46e5', borderRadius: 4, barPercentage: 0.5 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2], color: '#f3f4f6' }, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } } });
         } else if (userRole === 'gudang') {

@@ -19,8 +19,8 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 46px !important; font-size: 0.95rem !important; color: #374151 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 46px !important; right: 10px !important; }
     
-    /* Agar input tanggal terlihat seperti readonly tapi bisa diklik */
-    .flatpickr-input[readonly] { background-color: white !important; cursor: pointer; }
+    /* STYLE UNTUK INPUT TANGGAL YANG DIKUNCI */
+    .bg-locked { background-color: #f3f4f6 !important; cursor: not-allowed; }
 </style>
 
 <div class="max-w-4xl mx-auto py-6 animate-fade-in-up">
@@ -71,17 +71,18 @@
                 </div>
             </div>
 
-            {{-- 3. TANGGAL MASUK (FLATPICKR) --}}
+            {{-- 3. TANGGAL MASUK (DIKUNCI KE HARI INI - BERLAKU UNTUK SEMUA ROLE TERMASUK GUDANG) --}}
             <div class="group">
-                <label for="tanggal_masuk" class="block text-sm font-semibold text-gray-700 mb-1 group-hover:text-indigo-600 transition-colors">Tanggal Masuk <span class="text-red-500">*</span></label>
+                <label for="tanggal_masuk" class="block text-sm font-semibold text-gray-700 mb-1 group-hover:text-indigo-600 transition-colors">Tanggal Masuk (Hari Ini) <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar-alt"></i></span>
-                    {{-- Input tipe TEXT agar bisa dihandle Flatpickr --}}
+                    {{-- Input dikunci dengan readonly dan class visual bg-locked --}}
                     <input type="text" name="tanggal_masuk" id="tanggal_masuk"
-                           value="{{ old('tanggal_masuk', date('Y-m-d')) }}"
-                           class="w-full pl-10 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm cursor-pointer bg-white"
-                           required placeholder="Pilih Tanggal...">
+                           value="{{ date('Y-m-d') }}"
+                           class="w-full pl-10 border border-gray-300 rounded-lg p-2.5 bg-locked cursor-not-allowed"
+                           readonly required>
                 </div>
+                <p class="text-xs text-gray-400 mt-1 italic">* Tanggal otomatis diset secara real-time.</p>
             </div>
         </div>
 
@@ -101,18 +102,18 @@
 
 <script>
     $(document).ready(function() {
-        // Select2
+        // Inisialisasi Select2
         $('#id_barang').select2({ placeholder: "-- Pilih Barang --", allowClear: true, width: '100%' });
         $(document).on('select2:open', () => { document.querySelector('.select2-search__field').focus(); });
 
-        // Flatpickr (Tanggal Indonesia)
+        // Flatpickr (Dikonfigurasi agar tidak bisa dibuka/diedit oleh role gudang maupun admin)
         flatpickr("#tanggal_masuk", {
-            dateFormat: "Y-m-d", // Format yang dikirim ke database
-            altInput: true,      // Aktifkan tampilan alternatif
-            altFormat: "j F Y",  // Format Tampilan: 7 Desember 2025
-            locale: "id",        // Bahasa Indonesia
-            maxDate: "today",    // Tidak boleh lebih dari hari ini
-            allowInput: true     // Boleh ketik manual (opsional)
+            dateFormat: "Y-m-d", 
+            altInput: true,      
+            altFormat: "j F Y",  
+            locale: "id",        
+            defaultDate: "today",
+            clickOpens: false // Mencegah kalender terbuka saat diklik untuk menjaga real-time data
         });
     });
 </script>

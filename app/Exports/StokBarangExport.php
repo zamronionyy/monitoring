@@ -21,9 +21,6 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class StokBarangExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, WithDrawings, WithCustomStartCell, WithEvents, WithColumnFormatting
 {
-    /**
-    * Mengambil data dari database
-    */
     public function collection()
     {
         return StokBarang::with(['barang', 'barang.kategori'])
@@ -31,14 +28,11 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
                             ->get();
     }
 
-    /**
-    * Mapping data ke kolom Excel
-    */
     public function map($stok): array
     {
         return [
             $stok->id,
-            \Carbon\Carbon::parse($stok->tanggal_masuk)->format('d-m-Y'), // Format Tanggal
+            \Carbon\Carbon::parse($stok->tanggal_masuk)->format('d-m-Y'), 
             $stok->barang->kode_barang ?? '-',
             $stok->barang->nama_barang ?? 'Barang Dihapus',
             $stok->barang->kategori->nama_kategori ?? '-',
@@ -46,62 +40,44 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
         ];
     }
 
-    /**
-    * Judul Kolom (Header Tabel)
-    */
     public function headings(): array
     {
-        return [
-            'ID TRANSAKSI',
-            'TANGGAL MASUK',
-            'KODE BARANG',
-            'NAMA BARANG',
-            'KATEGORI',
-            'JUMLAH MASUK',
-        ];
+        return ['ID TRANSAKSI', 'TANGGAL MASUK', 'KODE BARANG', 'NAMA BARANG', 'KATEGORI', 'JUMLAH MASUK'];
     }
 
-    /**
-    * Format Kolom
-    */
     public function columnFormats(): array
     {
-        return [
-            'F' => '0', // Kolom F (Stok) format angka bulat
-        ];
+        return ['F' => '0'];
     }
 
-    /**
-    * Posisi Awal Data (Baris ke-7 agar ada spasi untuk Kop Surat)
-    */
     public function startCell(): string
     {
         return 'A7';
     }
 
-    /**
-    * Styling Header Tabel (Baris 7)
-    */
     public function styles(Worksheet $sheet)
     {
         $sheet->getStyle('A7:F7')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFF']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => '4F46E5']], // Indigo Background
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => '4F46E5']], 
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
         ]);
     }
 
     /**
-    * Menambahkan Logo Perusahaan
-    */
+     * PERBAIKAN LOGO UNTUK HOSTING
+     */
     public function drawings()
     {
-        // Logika Path Logo yang Aman (Cek Storage, Public, Base)
         $possiblePaths = [
-            storage_path('app/public/image/logo.png'),
-            public_path('image/logo.png'),
-            public_path('storage/image/logo.png'),
-            base_path('public/image/logo.png')
+            // Cek path standar (Disamakan dengan file lain: images/logo_cv.png)
+            public_path('images/logo_cv.png'),
+            base_path('../public_html/images/logo_cv.png'),
+            $_SERVER['DOCUMENT_ROOT'] . '/images/logo_cv.png',
+            
+           
+            public_path('images/logo_cv.png'),
+            base_path('../public_html/images/logo_cv.png'),
         ];
 
         $validPath = null;
@@ -128,18 +104,13 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
         return [];
     }
 
-    /**
-    * Event untuk Styling Lanjutan (Kop Surat & Border)
-    */
     public function registerEvents(): array
     {
         return [
             AfterSheet::class => function(AfterSheet $event) {
                 $sheet = $event->sheet;
                 
-                // === 1. KOP SURAT ===
-                
-                // Nama Perusahaan
+                // Kop Surat
                 $sheet->mergeCells('B1:F1'); 
                 $sheet->setCellValue('B1', 'CV. BIMA PERAGA NUSANTARA');
                 $sheet->getStyle('B1')->applyFromArray([
@@ -147,7 +118,6 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER],
                 ]);
 
-                // Alamat & Kontak
                 $sheet->mergeCells('B2:F2');
                 $sheet->setCellValue('B2', 'Gg. Tower 4A Unggahan, Banjarangung, Mojokerto');
                 $sheet->getStyle('B2')->applyFromArray(['font' => ['size' => 10, 'color' => ['argb' => '4B5563']]]);
@@ -156,12 +126,11 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
                 $sheet->setCellValue('B3', 'Telp: 0321-330850 | Email:bimaperaga.com');
                 $sheet->getStyle('B3')->applyFromArray(['font' => ['size' => 10, 'color' => ['argb' => '4B5563']]]);
                 
-                // Atur Tinggi Baris Header
                 $sheet->getRowDimension(1)->setRowHeight(30);
                 $sheet->getRowDimension(2)->setRowHeight(18);
                 $sheet->getRowDimension(3)->setRowHeight(18);
 
-                // === 2. JUDUL LAPORAN (Baris 5) ===
+                // Judul
                 $sheet->mergeCells('A5:F5');
                 $sheet->setCellValue('A5', 'LAPORAN RIWAYAT STOK BARANG MASUK');
                 $sheet->getStyle('A5')->applyFromArray([
@@ -171,28 +140,22 @@ class StokBarangExport implements FromCollection, WithHeadings, WithMapping, Sho
                 ]);
                 $sheet->getRowDimension(5)->setRowHeight(30);
 
-                // === 3. BORDER & ALIGNMENT DATA ===
+                // Border
                 $highestRow = $sheet->getHighestRow();
-                
-                // Border Tabel
                 $sheet->getStyle('A7:F' . $highestRow)->applyFromArray([
                     'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => '000000']]],
                 ]);
 
-                // Alignment Kolom (Tengah)
-                $sheet->getStyle('A8:C' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // ID, Tgl, Kode
-                $sheet->getStyle('E8:F' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); // Kategori, Stok
-                
-                // Nama Barang (Kiri)
+                $sheet->getStyle('A8:C' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); 
+                $sheet->getStyle('E8:F' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER); 
                 $sheet->getStyle('D8:D' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
-                // Auto Size Columns Manual Adjust
                 $sheet->getColumnDimension('A')->setWidth(15);
-                $sheet->getColumnDimension('B')->setWidth(18); // Tanggal
-                $sheet->getColumnDimension('C')->setWidth(20); // Kode
-                $sheet->getColumnDimension('D')->setWidth(40); // Nama Barang
-                $sheet->getColumnDimension('E')->setWidth(25); // Kategori
-                $sheet->getColumnDimension('F')->setWidth(15); // Stok
+                $sheet->getColumnDimension('B')->setWidth(18); 
+                $sheet->getColumnDimension('C')->setWidth(20); 
+                $sheet->getColumnDimension('D')->setWidth(40); 
+                $sheet->getColumnDimension('E')->setWidth(25); 
+                $sheet->getColumnDimension('F')->setWidth(15); 
             },
         ];
     }

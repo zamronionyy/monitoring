@@ -96,7 +96,8 @@
                 <div class="relative">
                     <input type="date" name="tanggal_mulai"
                            class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
-                           value="{{ old('tanggal_mulai', $start_date ?? request('tanggal_mulai', '')) }}">
+                           value="{{ old('tanggal_mulai', $start_date ?? request('tanggal_mulai', '')) }}"
+                           max="{{ date('Y-m-d') }}"> {{-- Perbaikan: max date --}}
                 </div>
             </div>
 
@@ -106,7 +107,8 @@
                 <div class="relative">
                     <input type="date" name="tanggal_selesai"
                            class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
-                           value="{{ old('tanggal_selesai', $end_date ?? request('tanggal_selesai', '')) }}">
+                           value="{{ old('tanggal_selesai', $end_date ?? request('tanggal_selesai', '')) }}"
+                           max="{{ date('Y-m-d') }}"> {{-- Perbaikan: max date --}}
                 </div>
             </div>
 

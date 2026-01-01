@@ -1,4 +1,6 @@
-@extends('layouts.app') @section('content')
+@extends('layouts.app') 
+
+@section('content')
 <h2 class="text-2xl font-bold mb-6">Manajemen Kategori</h2>
 
 <a href="{{ route('kategori.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4 inline-block">
@@ -60,8 +62,9 @@
         </tbody>
     </table>
     
-    <div class="px-5 py-5 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
-        {{ $kategoris->links() }}
+    {{-- PAGINATION YANG DITAMBAHKAN --}}
+    <div class="px-5 py-4 bg-gray-50 border-t border-gray-200 flex flex-col xs:flex-row items-center xs:justify-between">
+        {{ $kategoris->links('pagination.tailwind-custom') }}
     </div>
 </div>
 @endsection

@@ -9,7 +9,9 @@
 <style>
     @keyframes fadeInUp { from { opacity: 0; transform: translate3d(0, 20px, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
     .animate-fade-in-up { animation-name: fadeInUp; animation-duration: 0.5s; animation-fill-mode: forwards; }
-    .flatpickr-input[readonly] { background-color: white !important; cursor: pointer; }
+    
+    /* STYLE UNTUK INPUT TANGGAL YANG DIKUNCI */
+    .bg-locked { background-color: #f3f4f6 !important; cursor: not-allowed; }
 </style>
 
 <div class="max-w-4xl mx-auto py-6 animate-fade-in-up">
@@ -54,16 +56,16 @@
                     </div>
                 </div>
 
-                {{-- TANGGAL MASUK (FLATPICKR) --}}
+                {{-- TANGGAL MASUK (DIKUNCI) --}}
                 <div class="group">
-                    <label for="tanggal_masuk" class="block text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors mb-1">Tanggal Masuk</label>
+                    <label for="tanggal_masuk" class="block text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors mb-1">Tanggal Masuk (Terkunci)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-calendar-alt"></i></span>
-                        {{-- Gunakan Carbon untuk format awal Y-m-d agar terbaca Flatpickr --}}
+                        {{-- PERBAIKAN: Menambahkan class bg-locked dan atribut readonly --}}
                         <input type="text" name="tanggal_masuk" id="tanggal_masuk" 
                                value="{{ old('tanggal_masuk', \Carbon\Carbon::parse($stok->tanggal_masuk)->format('Y-m-d')) }}" 
-                               class="w-full pl-10 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-sm cursor-pointer bg-white" 
-                               required>
+                               class="w-full pl-10 border border-gray-300 rounded-lg p-2.5 bg-locked cursor-not-allowed" 
+                               readonly required>
                     </div>
                 </div>
             </div>
@@ -82,12 +84,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         flatpickr("#tanggal_masuk", {
-            dateFormat: "Y-m-d", // Simpan ke DB tetap Y-m-d
-            altInput: true,      // Tampilan user
-            altFormat: "j F Y",  // Contoh: 8 Desember 2025
-            locale: "id",        // Bahasa Indonesia
-            maxDate: "today",    // Batasi sampai hari ini
-            allowInput: true
+            dateFormat: "Y-m-d", 
+            altInput: true,      
+            altFormat: "j F Y",  
+            locale: "id",        
+            clickOpens: false // PERBAIKAN: Mencegah kalender terbuka saat diklik
         });
     });
 </script>

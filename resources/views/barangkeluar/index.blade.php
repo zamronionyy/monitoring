@@ -19,7 +19,8 @@
         {{-- TOMBOL AKSI --}}
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div class="flex space-x-2">
-                @if(auth()->user()->role == 'admin')
+                {{-- Izinkan Admin dan CEO untuk Tambah Data --}}
+                @if(in_array(auth()->user()->role, ['admin', 'ceo']))
                     <a href="{{ route('barangkeluar.create') }}" 
                        class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 active:scale-95 transform transition-all duration-200 flex items-center">
                         <i class="fas fa-plus mr-2"></i> Tambah Penjualan
@@ -36,7 +37,7 @@
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <form id="filterForm" action="{{ route('barangkeluar.index') }}" method="GET" class="flex flex-col lg:flex-row gap-4 items-end" novalidate>
                 
-                {{-- Input Tanggal Mulai (Flatpickr) --}}
+                {{-- Input Tanggal Mulai --}}
                 <div class="w-full lg:w-auto flex-1">
                     <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Dari Tanggal</label>
                     <div class="relative">
@@ -47,7 +48,7 @@
                     </div>
                 </div>
 
-                {{-- Input Tanggal Selesai (Flatpickr) --}}
+                {{-- Input Tanggal Selesai --}}
                 <div class="w-full lg:w-auto flex-1">
                     <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Sampai Tanggal</label>
                     <div class="relative">
@@ -63,8 +64,6 @@
                     <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Cari Transaksi</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><i class="fas fa-search"></i></span>
-                        
-                        {{-- PERBAIKAN: Ditambahkan autocomplete="off" --}}
                         <input type="text" name="search" value="{{ request('search') }}" 
                                autocomplete="off"
                                placeholder="Cari ID Transaksi, Pelanggan..." 
@@ -72,7 +71,6 @@
                     </div>
                 </div>
 
-                {{-- Tombol Filter & Reset --}}
                 <div class="flex gap-2 w-full lg:w-auto">
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition-all flex items-center justify-center h-[42px] flex-1 lg:flex-none">
                         <i class="fas fa-filter mr-2"></i> Filter
@@ -92,9 +90,6 @@
     @if (session('success'))
         <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" class="bg-green-100 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded shadow-md relative mb-4 flex items-center"><i class="fas fa-check-circle mr-2"></i> <span>{{ session('success') }}</span></div>
     @endif
-    @if (session('error'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show" class="bg-red-100 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded shadow-md relative mb-4 flex items-center"><i class="fas fa-exclamation-circle mr-2"></i> <span>{{ session('error') }}</span></div>
-    @endif
 
     {{-- TABEL DATA --}}
     <div class="bg-white shadow-lg rounded-lg overflow-hidden transition-shadow duration-300 hover:shadow-xl">
@@ -110,7 +105,7 @@
                         <tr>
                             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ID Transaksi</th>
                             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Nama Pelanggan</th>
-                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Tanggal & Jam</th>
                             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Total Harga</th>
                             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dicatat Oleh</th>
                             <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Aksi</th>
@@ -127,8 +122,12 @@
                                 </td>
                                 <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-600 whitespace-nowrap">
                                     <i class="far fa-calendar-alt mr-1 text-gray-400"></i>
-                                    {{-- FORMAT TANGGAL INDONESIA --}}
                                     {{ \Carbon\Carbon::parse($transaksi->tanggal)->translatedFormat('d F Y') }}
+                                    
+                                    {{-- TAMPILAN JAM --}}
+                                    <span class="ml-2 text-gray-400 font-medium bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                        <i class="far fa-clock mr-1 text-xs"></i>{{ \Carbon\Carbon::parse($transaksi->created_at)->format('H:i') }}
+                                    </span>
                                 </td>
                                 <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm font-bold text-green-600 whitespace-nowrap">
                                     Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}
@@ -141,9 +140,16 @@
                                 </td>
                                 <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm whitespace-nowrap">
                                     <div class="flex items-center space-x-3">
+                                        {{-- Detail tetap bisa diakses semua role yang diizinkan --}}
                                         <a href="{{ route('barangkeluar.detail', $transaksi->id) }}" class="text-blue-500 hover:text-blue-700 transform hover:scale-110 transition duration-150" title="Lihat Detail"><i class="fas fa-eye text-lg"></i></a>
-                                        @if(auth()->user()->role == 'admin')
+                                        
+                                        {{-- Edit tetap bisa diakses Admin dan CEO --}}
+                                        @if(in_array(auth()->user()->role, ['admin', 'ceo']))
                                             <a href="{{ route('barangkeluar.edit', $transaksi->id) }}" class="text-yellow-500 hover:text-yellow-700 transform hover:scale-110 transition duration-150" title="Edit Data"><i class="fas fa-edit text-lg"></i></a>
+                                        @endif
+
+                                        {{-- Hapus: HANYA untuk CEO. Admin tidak bisa menghapus --}}
+                                        @if(auth()->user()->role == 'ceo')
                                             <button type="button" onclick="konfirmasiHapus('{{ $transaksi->id }}', '{{ $transaksi->id_transaksi }}')" class="text-red-500 hover:text-red-700 transform hover:scale-110 transition duration-150" title="Hapus Data"><i class="fas fa-trash text-lg"></i></button>
                                             <form id="delete-form-{{ $transaksi->id }}" action="{{ route('barangkeluar.destroy', $transaksi->id) }}" method="POST" class="hidden">@csrf @method('DELETE')</form>
                                         @endif
@@ -167,37 +173,23 @@
 <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
 
 <script>
-    // Init Flatpickr Filter
     document.addEventListener("DOMContentLoaded", function() {
         const config = {
-            dateFormat: "Y-m-d", // Format ke Server
-            altInput: true,      // Tampilan User
-            altFormat: "j F Y",  // Format: 8 Desember 2025
-            locale: "id",        // Bahasa Indonesia
+            dateFormat: "Y-m-d", 
+            altInput: true,      
+            altFormat: "j F Y",  
+            locale: "id",        
             allowInput: true
         };
         flatpickr("#start_date", config);
         flatpickr("#end_date", config);
     });
 
-    // Konfirmasi Hapus
     function konfirmasiHapus(id, noTransaksi) {
         Swal.fire({
             title: 'Apakah Anda Yakin?', text: "Data " + noTransaksi + " akan dihapus permanen!", icon: 'warning',
             showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#6B7280', confirmButtonText: 'Ya, Hapus!'
         }).then((result) => { if (result.isConfirmed) document.getElementById('delete-form-' + id).submit(); })
     }
-    
-    // Validasi Form Filter
-    document.getElementById('filterForm').addEventListener('submit', function(event) {
-        const s = this.querySelector('input[name="start_date"]');
-        const e = this.querySelector('input[name="end_date"]');
-        // Flatpickr membuat input hidden asli, kita cek validity-nya
-        // Atau jika kosong salah satu tapi satunya isi
-        if ((s.value && !e.value) || (!s.value && e.value)) {
-            event.preventDefault();
-            Swal.fire({ icon: 'warning', title: 'Filter Tanggal Tidak Lengkap', text: 'Harap isi kedua tanggal (Dari & Sampai) atau kosongkan keduanya.', confirmButtonColor: '#4F46E5' });
-        }
-    });
 </script>
 @endsection

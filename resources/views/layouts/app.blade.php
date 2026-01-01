@@ -35,15 +35,14 @@
                class="fixed inset-y-0 left-0 z-30 w-64 overflow-y-auto transition-transform duration-300 transform bg-white border-r border-slate-100 lg:translate-x-0 lg:static lg:inset-0 flex flex-col justify-between shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
             
             <div>
-                {{-- LOGO HEADER (SUDAH DIPERBAIKI) --}}
+                {{-- LOGO HEADER --}}
                 <div class="flex items-center justify-center p-6 mb-2">
                     <div class="flex items-center gap-3">
-                       <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 p-1 overflow-hidden">
-    {{-- Perbaikan: Menggunakan asset() yang mengarah ke folder public/image --}}
-                            <img src="{{ asset('logo.png') }}" 
-                                alt="Logo CV Bima" 
-                                class="w-full h-full object-contain"
-                                onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-leaf text-emerald-500 text-xl\'></i>';">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm border border-slate-100 p-1 overflow-hidden">
+                            <img src="{{ asset('images/logo_cv.png') }}" 
+                                 alt="Logo CV Bima" 
+                                 class="w-full h-full object-contain"
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-leaf text-emerald-500 text-xl\'></i>';">
                         </div>
                         
                         <div class="leading-tight">
@@ -56,7 +55,7 @@
                 {{-- Navigasi Menu --}}
                 <nav class="px-4 space-y-1.5">
                     
-                    {{-- Dashboard --}}
+                    {{-- Dashboard (Semua Role) --}}
                     <a href="{{ route('dashboard') }}" 
                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                        {{ request()->routeIs('dashboard') 
@@ -66,30 +65,29 @@
                         <span>Dashboard</span>
                     </a>
 
-                    @if(auth()->user()->role == 'admin')
+                    {{-- MASTER DATA & PENJUALAN (Admin & CEO) --}}
+                    @if(in_array(auth()->user()->role, ['admin', 'ceo']))
                         <div class="mt-6 mb-2 px-3">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Master Data</p>
                         </div>
                         
-                        {{-- Manajemen Barang --}}
                         <a href="{{ route('barang.index') }}" 
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
-                           {{ request()->routeIs('barang.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                            <i class="fas fa-box w-5 text-center {{ request()->routeIs('barang.*') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500' }}"></i> 
+                           {{ request()->routeIs(['barang.*', 'kategori.*']) ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
+                            <i class="fas fa-box w-5 text-center {{ request()->routeIs(['barang.*', 'kategori.*']) ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500' }}"></i> 
                             <span>Data Barang</span>
                         </a>
 
-                        {{-- Penjualan --}}
                         <a href="{{ route('barangkeluar.index') }}" 
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
-                           {{ request()->routeIs('barangkeluar.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
-                            <i class="fas fa-shopping-basket w-5 text-center {{ request()->routeIs('barangkeluar.*') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500' }}"></i> 
+                           {{ request()->routeIs(['barangkeluar.*', 'pelanggan.*']) ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
+                            <i class="fas fa-shopping-basket w-5 text-center {{ request()->routeIs(['barangkeluar.*', 'pelanggan.*']) ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500' }}"></i> 
                             <span>Penjualan</span>
                         </a>
                     @endif
 
-                    {{-- Stok Barang --}}
-                    @if(in_array(auth()->user()->role, ['admin', 'gudang']))
+                    {{-- INVENTORY (Khusus CEO & Gudang - Disembunyikan dari Admin) --}}
+                    @if(in_array(auth()->user()->role, ['gudang', 'ceo']))
                         <div class="mt-6 mb-2 px-3">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inventory</p>
                         </div>
@@ -101,20 +99,19 @@
                         </a>
                     @endif
 
-                    @if(auth()->user()->role == 'admin')
+                    {{-- ANALITIK & ADMIN (Khusus CEO - Disembunyikan dari Admin) --}}
+                    @if(auth()->user()->role == 'ceo')
                         <div class="mt-6 mb-2 px-3">
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Analitik & Admin</p>
                         </div>
 
-                        {{-- Akun --}}
                         <a href="{{ route('akunrole.index') }}" 
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                             {{ request()->routeIs('akunrole.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
                              <i class="fas fa-user-shield w-5 text-center {{ request()->routeIs('akunrole.*') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500' }}"></i> 
                              <span>Akun Pengguna</span>
-                          </a>
+                        </a>
                         
-                        {{-- K-Means --}}
                         <a href="{{ route('k_means.index') }}" 
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                            {{ request()->routeIs('k_means.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">
@@ -122,7 +119,6 @@
                             <span>Clustering (K-Means)</span>
                         </a>
                         
-                        {{-- Apriori --}}
                         <a href="{{ route('apriori.index') }}" 
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
                            {{ request()->routeIs('apriori.*') ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600' }}">

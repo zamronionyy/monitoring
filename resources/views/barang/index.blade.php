@@ -24,8 +24,8 @@
     {{-- HEADER & TOOLS --}}
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
         
-        {{-- BAGIAN KIRI: TOMBOL AKSI --}}
-        @if(auth()->user()->role == 'admin')
+        {{-- BAGIAN KIRI: TOMBOL AKSI (Akses: Admin & CEO) --}}
+        @if(in_array(auth()->user()->role, ['admin', 'ceo']))
             <form id="delete-multiple-form" action="{{ route('barang.deleteMultiple') }}" method="POST" class="flex flex-wrap items-center gap-2">
                 @csrf
                 @method('DELETE')
@@ -231,7 +231,7 @@
 
                             {{-- Harga --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-700">
-                                Rp {{ number_format($barang->harga, 0, ',', '.') }}
+                              &nbsp;Rp&nbsp;{{ number_format($barang->harga, 0, ',', '.') }}
                             </td>
                             
                             {{-- Stok --}}
@@ -256,9 +256,9 @@
                                 </span>
                             </td>
 
-                            {{-- Aksi --}}
+                            {{-- Aksi (Akses: Admin & CEO) --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-center text-sm whitespace-nowrap">
-                                @if(auth()->user()->role == 'admin')
+                                @if(in_array(auth()->user()->role, ['admin', 'ceo']))
                                     <div class="flex justify-center space-x-2">
                                         <a href="{{ route('barang.edit', $barang->id) }}" 
                                            class="text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full transition-all duration-200 transform hover:scale-110" 

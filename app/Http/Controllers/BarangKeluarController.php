@@ -51,13 +51,23 @@ class BarangKeluarController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        $pelanggans = Pelanggan::orderBy('nama_pelanggan', 'asc')->get();
-        $barangs = Barang::orderBy('nama_barang', 'asc')->get();
+   public function create()
+{
+    $pelanggans = Pelanggan::orderBy('nama_pelanggan', 'asc')->get();
+    
+    // Ambil barang beserta kalkulasi stok akhir secara real-time
+    $barangs = Barang::withSum('stokBarangs', 'stok')
+                     ->withSum('detailBarangKeluars', 'jumlah')
+                     ->orderBy('nama_barang', 'asc')
+                     ->get()
+                     ->map(function($barang) {
+                         // Hitung sisa stok: Total Masuk - Total Keluar
+                         $barang->stok_akhir = ($barang->stok_barangs_sum_stok ?? 0) - ($barang->detail_barang_keluars_sum_jumlah ?? 0);
+                         return $barang;
+                     });
 
-        return view('barangkeluar.create', compact('pelanggans', 'barangs'));
-    }
+    return view('barangkeluar.create', compact('pelanggans', 'barangs'));
+}
 
     /**
      * Store dengan Validasi Tanggal, Biaya Kirim & DP

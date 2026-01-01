@@ -128,16 +128,19 @@
                     @enderror
                 </div>
 
-                {{-- INSTRUKSI KOLOM --}}
-                <div class="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
-                    <h5 class="font-bold text-blue-800 text-sm mb-2 flex items-center">
-                        <i class="fas fa-info-circle mr-2"></i> Ketentuan Data:
-                    </h5>
-                    <ul class="text-xs text-blue-900 space-y-1 list-disc list-inside">
-                        <li>Kolom wajib: <strong>kode_barang</strong>, <strong>stok</strong>, <strong>tanggal_masuk</strong>.</li>
-                        <li><strong>Kode Barang</strong> harus sudah terdaftar di Master Barang.</li>
-                        <li>Format tanggal disarankan: <code>YYYY-MM-DD</code> (Contoh: 2024-01-30).</li>
-                    </ul>
+                {{-- INSTRUKSI KOLOM (UPDATED) --}}
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                    <i class="fas fa-info-circle text-blue-600 text-xl shrink-0 mt-0.5"></i>
+                    <div>
+                        <h5 class="font-bold text-blue-900 text-sm mb-2">Ketentuan Import Data:</h5>
+                        <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                            <li>Gunakan <b>Template Terbaru</b>. Jangan ubah Header di <b>Baris 7</b>.</li>
+                            <li>Isi data stok mulai dari <b>Baris 8</b>.</li>
+                            <li>Kolom Wajib: <b>KODE BARANG</b>, <b>STOK</b>, <b>TANGGAL MASUK</b>.</li>
+                            <li><b>Kode Barang</b> harus sudah terdaftar di Master Barang.</li>
+                            <li>Pastikan format Tanggal: <b>YYYY-MM-DD</b> (Contoh: 2024-12-31).</li>
+                        </ul>
+                    </div>
                 </div>
 
                 {{-- ACTION BUTTONS --}}

@@ -31,14 +31,16 @@
 
         {{-- GRUP TOMBOL AKSI (KIRI) --}}
         <div class="flex flex-wrap items-center gap-2">
-            @if(in_array(auth()->user()->role, ['admin', 'gudang']))
+            {{-- PERBAIKAN: Gunakan in_array untuk pengecekan role yang benar --}}
+            @if(in_array(auth()->user()->role, ['ceo', 'admin', 'gudang']))
                 <a href="{{ route('stokbarang.create') }}" 
                    class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg active:scale-95 transform transition-all duration-200 flex items-center">
                        <i class="fas fa-plus mr-2"></i> Tambah Stok
                 </a>
             @endif
 
-            @if(auth()->user()->role == 'admin')
+            {{-- PERBAIKAN: Gunakan in_array untuk pengecekan ceo dan admin --}}
+            @if(in_array(auth()->user()->role, ['ceo', 'admin']))
                
              <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open" type="button" 
@@ -78,8 +80,7 @@
         {{-- FORM PENCARIAN & FILTER (KANAN) --}}
         <form action="{{ route('stokbarang.index') }}" method="GET" class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
 
-            {{-- Filter Kategori (CUSTOM DROPDOWN - ALPINE JS) --}}
-            {{-- Tombol kotak (rounded-lg), Dropdown List membulat (rounded-xl) --}}
+            {{-- Filter Kategori --}}
             <div x-data="{ 
                     open: false, 
                     selectedId: '{{ $selectedKategoriId }}',
@@ -91,10 +92,8 @@
                  }" 
                  class="relative min-w-[200px] sm:w-48 group"> 
                 
-                {{-- INPUT HIDDEN (ID tetap 'kategori_id' agar JS reset search di bawah tetap jalan) --}}
                 <input type="hidden" name="kategori_id" id="kategori_id" value="{{ $selectedKategoriId }}">
 
-                {{-- 1. TOMBOL TRIGGER (KOTAK / ROUNDED-LG) --}}
                 <button type="button" @click="open = !open" @click.away="open = false"
                     class="flex items-center justify-between w-full pl-3 pr-3 bg-white border border-gray-300 
                            rounded-lg shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 
@@ -109,7 +108,6 @@
                        :class="{'rotate-180': open}"></i>
                 </button>
 
-                {{-- 2. DAFTAR PILIHAN (ROUNDED-XL / TIDAK LANCIP) --}}
                 <div x-show="open" 
                      style="display: none;"
                      x-transition:enter="transition ease-out duration-200"
@@ -119,7 +117,6 @@
                      class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden origin-top-left">
                     
                     <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                        {{-- Opsi: Semua Kategori --}}
                         <div @click="select('')" 
                              class="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors border-b border-gray-50 flex items-center justify-between">
                             <span>Semua Kategori</span>
@@ -128,7 +125,6 @@
                             </template>
                         </div>
 
-                        {{-- Loop Opsi Kategori --}}
                         @foreach ($kategoris as $kategori)
                             <div @click="select('{{ $kategori->id }}')" 
                                  class="px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 cursor-pointer transition-colors border-b border-gray-50 last:border-0 flex items-center justify-between">
@@ -143,14 +139,11 @@
             </div>
 
             {{-- Input Pencarian --}}
-          {{-- Input Pencarian --}}
             <div class="relative flex items-center w-full sm:max-w-xs group">
-                {{-- Icon Search --}}
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
                     <i class="fas fa-search"></i>
                 </div>
                 
-                {{-- PERBAIKAN: Ditambahkan autocomplete="off" untuk menghilangkan kotak hitam browser --}}
                 <input type="text" name="search" id="search_input"
                         placeholder="Cari Kode, Nama..."
                         value="{{ request('search') }}"
@@ -159,7 +152,6 @@
                                @if(request('search')) pr-10 @else pr-4 @endif
                                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm transition-all outline-none">
                 
-                {{-- Reset Button --}}
                 @if(request('search'))
                     <button type="button" 
                             onclick="resetSearchAndKeepCategory()"
@@ -173,7 +165,7 @@
         </form>
     </div>
 
-    {{-- NOTIFIKASI (Alpine JS) --}}
+    {{-- NOTIFIKASI --}}
     @foreach (['success' => 'green', 'error' => 'red'] as $msg => $color)
         @if (session($msg))
             <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show"
@@ -201,22 +193,21 @@
                 <table class="min-w-full leading-normal">
                     <thead>
                         <tr class="bg-gray-50 border-b-2 border-gray-200">
-                            {{-- Checkbox Header --}}
                             <th class="px-5 py-3 text-left w-10">
                                 <input type="checkbox" id="checkAllStock" 
-                                       class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 h-4 w-4 @if(auth()->user()->role != 'admin') hidden @endif">
+                                       class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 h-4 w-4 @if(!in_array(auth()->user()->role, ['ceo', 'admin'])) hidden @endif">
                             </th>
 
                             <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kode</th>
                             <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Barang</th>
                             <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kategori</th>
 
-                            @if(auth()->user()->role == 'admin')
+                            @if(in_array(auth()->user()->role, ['ceo', 'admin']))
                                 <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Harga Jual</th>
                             @endif
 
                             <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Stok Masuk</th>
-                            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Masuk</th>
+                            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal & Jam Masuk</th>
                             <th class="px-5 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
@@ -225,61 +216,54 @@
                         @forelse ($stokBarangs as $item)
                         <tr class="hover:bg-blue-50 transition-colors duration-150 group">
 
-                            {{-- Checkbox --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm">
                                 <input type="checkbox" name="ids[]" value="{{ $item->id }}" 
-                                       class="item-stock-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 h-4 w-4 @if(auth()->user()->role != 'admin') hidden @endif">
+                                       class="item-stock-checkbox rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 h-4 w-4 @if(!in_array(auth()->user()->role, ['ceo', 'admin'])) hidden @endif">
                             </td>
 
-                            {{-- Kode --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm">
                                 <span class="font-mono font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded text-xs">
                                     {{ $item->barang->kode_barang ?? 'N/A' }}
                                 </span>
                             </td>
 
-                            {{-- Nama --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm font-semibold text-gray-700">
                                 {{ $item->barang->nama_barang ?? 'N/A' }}
                             </td>
 
-                            {{-- Kategori --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-600">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                     {{ $item->barang->kategori->nama_kategori ?? 'N/A' }}
                                 </span>
                             </td>
 
-                            @if(auth()->user()->role == 'admin')
-                            {{-- Harga --}}
+                            @if(in_array(auth()->user()->role, ['ceo', 'admin']))
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-700">
                                 Rp {{ number_format($item->barang->harga ?? 0, 0, ',', '.') }}
                             </td>
                             @endif
 
-                            {{-- Stok Masuk --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm font-bold text-green-600">
                                 + {{ $item->stok }}
                             </td>
 
-                            {{-- Tanggal --}}
-                            <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-600">
+                            <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-gray-600 whitespace-nowrap">
                                 <i class="far fa-calendar-alt text-gray-400 mr-1"></i>
                                 {{ \Carbon\Carbon::parse($item->tanggal_masuk)->format('d M Y') }}
+                                <span class="ml-2 text-gray-400 font-medium bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                    <i class="far fa-clock mr-1 text-xs"></i>{{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}
+                                </span>
                             </td>
 
-                            {{-- Aksi --}}
                             <td class="px-5 py-4 bg-white group-hover:bg-blue-50 text-sm text-center whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">
-                                    {{-- Edit --}}
                                     <a href="{{ route('stokbarang.edit', $item->id) }}" 
                                        class="text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full transition-all duration-200 transform hover:scale-110" 
                                        title="Edit Stok">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    @if(auth()->user()->role == 'admin')
-                                    {{-- Hapus --}}
+                                    @if(in_array(auth()->user()->role, ['ceo', 'admin']))
                                     <button type="button" 
                                             onclick="if(confirm('Hapus riwayat stok masuk ini?')) { document.getElementById('delete-form-{{ $item->id }}').submit(); }"
                                             class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-full transition-all duration-200 transform hover:scale-110"
@@ -292,7 +276,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->role == 'admin' ? '8' : '7' }}" class="px-5 py-10 border-b border-gray-200 bg-white text-center">
+                            <td colspan="{{ in_array(auth()->user()->role, ['ceo', 'admin']) ? '8' : '7' }}" class="px-5 py-10 border-b border-gray-200 bg-white text-center">
                                 <div class="flex flex-col items-center justify-center text-gray-500">
                                     <i class="fas fa-box-open text-4xl mb-3 text-gray-300"></i>
                                     <p class="text-sm">
@@ -319,9 +303,8 @@
         </div>
     </form>
     
-    {{-- Form-form tersembunyi untuk tombol hapus per item --}}
     @foreach ($stokBarangs as $item)
-        @if(auth()->user()->role == 'admin')
+        @if(in_array(auth()->user()->role, ['ceo', 'admin']))
             <form id="delete-form-{{ $item->id }}" action="{{ route('stokbarang.destroy', $item->id) }}" method="POST" class="hidden">
                 @csrf
                 @method('DELETE')
@@ -330,7 +313,6 @@
     @endforeach
 
 </div>
-
 
 {{-- SCRIPT --}}
 <script>
@@ -345,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const checkedCount = document.querySelectorAll('.item-stock-checkbox:checked').length;
             deleteBtn.disabled = checkedCount === 0;
             
-            // Efek visual saat disabled/enabled
             if (deleteBtn.disabled) {
                 deleteBtn.classList.add('opacity-50', 'cursor-not-allowed', 'transform-none', 'shadow-none');
             } else {
@@ -364,7 +345,6 @@ document.addEventListener('DOMContentLoaded', function () {
     checkboxes.forEach(cb => {
         cb.addEventListener('change', () => {
             if (!cb.checked && checkAll) checkAll.checked = false;
-            // Cek jika semua tercentang manual
             const allChecked = document.querySelectorAll('.item-stock-checkbox:checked').length === checkboxes.length;
             if (checkAll) checkAll.checked = allChecked;
             

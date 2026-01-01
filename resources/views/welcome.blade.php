@@ -36,14 +36,19 @@
             {{-- Container Logo (Posisi Absolute agar menumpuk di tengah) --}}
             <div class="absolute top-20 left-1/2 transform -translate-x-1/2">
                 <div class="w-24 h-24 bg-white p-2 rounded-2xl shadow-lg flex items-center justify-center">
-                    <img src="/storage/image/logo_cv.png" alt="Logo CV Bima" class="w-full h-full object-contain">
+                    {{-- 
+                        PERUBAHAN PENTING DI SINI:
+                        Menggunakan asset() agar membaca file langsung dari folder 'public/image'
+                        Pastikan file logo_cv.png ada di folder: public_html/image/ 
+                    --}}
+                    <img src="{{ asset('images/logo_cv.png') }}" alt="Logo CV Bima" class="w-full h-full object-contain">
                 </div>
             </div>
 
             {{-- Konten Text --}}
             <div class="pt-16 pb-8 px-8 text-center mt-4">
                 <h2 class="text-sm font-bold text-emerald-600 tracking-wider uppercase mb-1">Selamat Datang di</h2>
-                <h1 class="text-2xl font-extrabold text-slate-800 mb-3">CV. BIMA PERRAGA NUSANTARA</h1>
+                <h1 class="text-2xl font-extrabold text-slate-800 mb-3">CV. BIMA PERAGA NUSANTARA</h1>
                 <p class="text-slate-500 text-sm leading-relaxed mb-8">
                     Sistem terintegrasi untuk memantau stok barang, mencatat penjualan, dan menganalisis data bisnis secara <i>real-time</i>.
                 </p>

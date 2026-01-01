@@ -10,25 +10,32 @@ use Illuminate\Validation\Rules;
 class AkunRoleController extends Controller
 {
     /**
-     * Tampilkan daftar akun user (selain admin).
+     * Menampilkan daftar semua pengguna.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil semua user yang memiliki role 'gudang'. 
-        $users = User::where('role', 'gudang')->get();
+        $search = $request->input('search');
+
+        $users = User::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhere('role', 'like', "%{$search}%");
+        })->paginate(10);
+
         return view('akunrole.index', compact('users'));
     }
 
     /**
-     * Tampilkan form untuk membuat user baru.
+     * Form tambah akun baru.
      */
     public function create()
     {
-        return view('akunrole.create');
+        $roles = ['admin', 'gudang', 'ceo'];
+        return view('akunrole.create', compact('roles'));
     }
 
     /**
-     * Simpan user baru ke database dengan role 'gudang'.
+     * Menyimpan akun baru dengan proteksi jumlah CEO.
      */
     public function store(Request $request)
     {
@@ -36,79 +43,92 @@ class AkunRoleController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => ['required', 'string', 'in:admin,gudang,ceo'],
         ]);
+
+        // FITUR KEAMANAN: Cek jika role CEO sudah ada
+        if ($request->role === 'ceo') {
+            $existingCeo = User::where('role', 'ceo')->exists();
+            if ($existingCeo) {
+                return redirect()->back()
+                    ->with('error', 'Gagal: Akun CEO sudah ada. Sistem hanya mengizinkan satu akun dengan role CEO.')
+                    ->withInput();
+            }
+        }
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'gudang', // **KUNCI:** Secara default di-set sebagai akun gudang
+            'role' => $request->role,
         ]);
 
-        return redirect()->route('akunrole.index')->with('success', 'Akun Gudang berhasil ditambahkan.');
+        return redirect()->route('akunrole.index')->with('success', 'Akun berhasil dibuat.');
     }
-    
-    /**
-     * Tampilkan form edit untuk akun Gudang tertentu.
-     */
-    public function edit(User $akunrole)
-    {
-        // PENTING: Pastikan hanya admin yang mengedit akun gudang, dan bukan akun admin lain.
-        if ($akunrole->role !== 'gudang') {
-             return back()->with('error', 'Akses ditolak. Akun yang dipilih bukan akun Gudang.');
-        }
-        
-        // Menggunakan nama variabel $user untuk konsistensi di view
-        return view('akunrole.edit', ['user' => $akunrole]);
-    }
-    
-    /**
-     * Menyimpan perubahan pada akun Gudang.
-     */
-    public function update(Request $request, User $akunrole)
-    {
-        // PENTING: Lindungi akun admin dan lindungi field email/role
-        if ($akunrole->role !== 'gudang') {
-            return back()->with('error', 'Akses ditolak. Akun yang dipilih bukan akun Gudang.');
-        }
 
-        $rules = [
+    /**
+     * Form edit akun.
+     */
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        $roles = ['admin', 'gudang', 'ceo'];
+        return view('akunrole.edit', compact('user', 'roles'));
+    }
+
+    /**
+     * Memperbarui data akun dengan pengecekan perpindahan role ke CEO.
+     */
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            // Email tidak boleh diubah
-            'password' => ['nullable', 'confirmed', Rules\Password::defaults()], 
-        ];
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'role' => ['required', 'string', 'in:admin,gudang,ceo'],
+        ]);
 
-        $request->validate($rules);
-        
-        $akunrole->name = $request->name;
-
-        // Jika password diisi, update password
-        if ($request->filled('password')) {
-            $akunrole->password = Hash::make($request->password);
+        // FITUR KEAMANAN: Mencegah perubahan role ke CEO jika CEO sudah ada (kecuali dirinya sendiri)
+        if ($request->role === 'ceo' && $user->role !== 'ceo') {
+            $existingCeo = User::where('role', 'ceo')->exists();
+            if ($existingCeo) {
+                return redirect()->back()
+                    ->with('error', 'Gagal: Tidak bisa mengubah akun menjadi CEO karena akun CEO sudah ada.')
+                    ->withInput();
+            }
         }
 
-        $akunrole->save();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->role = $request->role;
 
-        return redirect()->route('akunrole.index')->with('success', 'Akun ' . $akunrole->name . ' berhasil diperbarui.');
+        if ($request->filled('password')) {
+            $request->validate([
+                'password' => ['confirmed', Rules\Password::defaults()],
+            ]);
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->route('akunrole.index')->with('success', 'Data akun berhasil diperbarui.');
     }
 
     /**
-     * Hapus user Gudang.
+     * Menghapus akun.
      */
-    public function destroy(User $akunrole)
+    public function destroy($id)
     {
-        // PENTING: Pastikan hanya menghapus user dengan role 'gudang'
-        if ($akunrole->role !== 'gudang') {
-            return back()->with('error', 'Akses ditolak. Anda hanya dapat menghapus akun Gudang.');
+        $user = User::findOrFail($id);
+        
+        // Proteksi: Tidak bisa menghapus diri sendiri
+        if (auth()->id() == $user->id) {
+            return redirect()->route('akunrole.index')->with('error', 'Peringatan: Anda tidak dapat menghapus akun Anda sendiri.');
         }
 
-        // Tidak boleh menghapus diri sendiri (jika admin sedang login)
-        if (auth()->user()->id === $akunrole->id) {
-            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
-        }
+        $user->delete();
 
-        $akunrole->delete();
-
-        return redirect()->route('akunrole.index')->with('success', 'Akun ' . $akunrole->name . ' berhasil dihapus.');
+        return redirect()->route('akunrole.index')->with('success', 'Akun berhasil dihapus.');
     }
 }

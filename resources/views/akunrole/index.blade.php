@@ -32,108 +32,69 @@
         </div>
         
         <a href="{{ route('akunrole.create') }}" 
-           class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-md hover:bg-indigo-700 hover:shadow-lg active:scale-95 transform transition-all duration-200 flex items-center">
+           class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-md hover:bg-indigo-700 active:scale-95 transform transition-all duration-200 flex items-center">
             <i class="fas fa-user-plus mr-2"></i> Tambah Akun
         </a>
     </div>
 
     {{-- NOTIFIKASI --}}
     @if (session('success'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 transform -translate-y-2"
-             x-transition:enter-end="opacity-100 transform translate-y-0"
-             x-transition:leave="transition ease-in duration-300" 
-             x-transition:leave-start="opacity-100 transform translate-y-0" 
-             x-transition:leave-end="opacity-0 transform -translate-y-2"
-             class="bg-green-100 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded shadow-md relative mb-6 flex items-center">
-            <i class="fas fa-check-circle mr-3 text-lg"></i>
-            <span class="font-medium">{{ session('success') }}</span>
+        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 3000)" x-show="show" class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-sm flex items-center">
+            <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
         </div>
     @endif
 
-    {{-- TABEL DATA --}}
-    <div class="bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
+    {{-- TABEL --}}
+    <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-100">
         <div class="overflow-x-auto">
             <table class="min-w-full leading-normal">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-200">
-                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-16 text-center">
-                            No
-                        </th>
-                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Nama User
-                        </th>
-                        <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Email
-                        </th>
-                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Role
-                        </th>
-                        <th class="px-5 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            Aksi
-                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Pengguna</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
+                        <th class="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($users as $user)
-                    <tr class="hover:bg-indigo-50 transition-colors duration-150 group">
-                        
-                        {{-- Nomor --}}
-                        <td class="px-5 py-4 text-center text-sm text-gray-500 bg-white group-hover:bg-indigo-50">
-                            {{ $loop->iteration }}
-                        </td>
-
-                        {{-- Nama User dengan Avatar --}}
-                        <td class="px-5 py-4 bg-white group-hover:bg-indigo-50">
+                    <tr class="hover:bg-indigo-50/30 transition-colors">
+                        <td class="px-6 py-4 bg-white">
                             <div class="flex items-center">
-                                <div class="flex-shrink-0 w-10 h-10 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center font-bold text-lg shadow-sm">
-                                    {{ substr($user->name, 0, 1) }}
+                                <div class="h-10 w-10 flex-shrink-0 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
-                                <div class="ml-3">
-                                    <p class="text-gray-900 whitespace-no-wrap font-semibold">
-                                        {{ $user->name }}
-                                    </p>
-                                    <p class="text-gray-400 text-xs">
-                                        ID: #{{ $user->id }}
-                                    </p>
+                                <div class="ml-4">
+                                    <div class="text-sm font-bold text-gray-800">{{ $user->name }}</div>
                                 </div>
                             </div>
                         </td>
-
-                        {{-- Email --}}
-                        <td class="px-5 py-4 bg-white group-hover:bg-indigo-50 text-sm text-gray-600">
-                            <div class="flex items-center">
-                                <i class="far fa-envelope mr-2 text-gray-400"></i>
-                                {{ $user->email }}
-                            </div>
-                        </td>
-
-                        {{-- Role Badge --}}
-                        <td class="px-5 py-4 bg-white group-hover:bg-indigo-50 text-center">
+                        <td class="px-6 py-4 bg-white text-sm text-gray-600">{{ $user->email }}</td>
+                        <td class="px-6 py-4 bg-white text-sm">
                             @php
                                 $roleColor = match(strtolower($user->role)) {
                                     'admin' => 'bg-blue-100 text-blue-800 border-blue-200',
                                     'gudang' => 'bg-green-100 text-green-800 border-green-200',
+                                    'ceo' => 'bg-purple-100 text-purple-800 border-purple-200',
                                     default => 'bg-gray-100 text-gray-800 border-gray-200',
                                 };
                             @endphp
-                            <span class="relative inline-block px-3 py-1 font-bold text-xs leading-tight uppercase tracking-wide rounded-full border {{ $roleColor }}">
-                                {{ $user->role }}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full border {{ $roleColor }}">
+                                {{ strtoupper($user->role) }}
                             </span>
                         </td>
-
-                        {{-- Aksi --}}
-                        <td class="px-5 py-4 bg-white group-hover:bg-indigo-50 text-center text-sm font-medium">
+                        <td class="px-6 py-4 bg-white text-sm text-gray-500">
+                            {{ $user->created_at->format('d M Y') }}
+                        </td>
+                        <td class="px-6 py-4 bg-white text-sm text-center">
                             <div class="flex justify-center space-x-3">
-                                {{-- Tombol Edit --}}
                                 <a href="{{ route('akunrole.edit', $user->id) }}" 
                                    class="text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full transition-all duration-200 transform hover:scale-110 shadow-sm"
                                    title="Edit Akun">
                                     <i class="fas fa-user-edit"></i>
                                 </a>
 
-                                {{-- Tombol Hapus --}}
                                 <form action="{{ route('akunrole.destroy', $user->id) }}" method="POST" 
                                       onsubmit="return confirm('PERINGATAN: Apakah Anda yakin ingin menghapus akun {{ $user->name }}?');">
                                     @csrf

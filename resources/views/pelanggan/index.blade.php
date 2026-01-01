@@ -79,7 +79,7 @@
     </table>
     
     <div class="px-5 py-3 bg-white border-t flex flex-col xs:flex-row items-center xs:justify-between">
-        {{ $pelanggans->links('pagination::tailwind') }}
+        {{ $pelanggans->links('pagination.tailwind-custom') }}
     </div>
 </div>
 @endsection

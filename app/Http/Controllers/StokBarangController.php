@@ -64,23 +64,24 @@ class StokBarangController extends Controller
      * Store dengan Validasi Tanggal (Tidak Boleh Lebih dari Hari Ini)
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'id_barang' => 'required|exists:barangs,id',
-            'stok' => 'required|numeric|min:1',
-            // VALIDASI: Tanggal wajib diisi & tidak boleh lebih dari hari ini
-            'tanggal_masuk' => 'required|date|before_or_equal:today', 
-        ]);
+{
+    // Validasi data lainnya
+    $request->validate([
+        'id_barang' => 'required|exists:barangs,id',
+        'stok' => 'required|numeric|min:1',
+    ]);
 
-        StokBarang::create([
-            'id_barang' => $request->id_barang,
-            'stok' => $request->stok,
-            'tanggal_masuk' => $request->tanggal_masuk,
-        ]);
+    // PAKSA tanggal menjadi hari ini jika user adalah 'gudang'
+    $tanggal = auth()->user()->role === 'gudang' ? now()->toDateString() : $request->tanggal_masuk;
 
-        return redirect()->route('stokbarang.index')->with('success', 'Stok berhasil ditambahkan.');
-    }
+    StokBarang::create([
+        'id_barang' => $request->id_barang,
+        'stok' => $request->stok,
+        'tanggal_masuk' => $tanggal, // Gunakan variabel $tanggal yang sudah difilter
+    ]);
 
+    return redirect()->route('stokbarang.index')->with('success', 'Stok berhasil ditambahkan.');
+}
     public function edit($id)
     {
         $stok = StokBarang::with('barang.kategori')->findOrFail($id);
